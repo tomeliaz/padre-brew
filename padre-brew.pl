@@ -32,12 +32,12 @@ Getopt::Long::GetOptions(
   'perlver:s',                 # Which perl version should we use, defaults to 5.14.1
   'notest|no-test|bythesword', # Skip testing perl and cpan, live dangerous
   'module:s@',                 # Override the module list, defaults to Wx::Scintilla
-  'base_module:s@',            # Core to padre such as Padre itself, and Alien-wxWidgets
   'v|verbose',
   'modules_only|modules-only'
   , # Set if you want to SKIP directly to installing modules (you already did the perl setup)
   'url_cpanm:s', # cpanm url if not default
   'keep_man',    # default to false
+  'base_module:s@',            # Core to padre such as Padre itself, and Alien-wxWidgets
 );
 
 if ($opt->{h}) {
@@ -195,7 +195,7 @@ sub check_cpanm {
       return 0;
     }
     else {
-      die 'We thoght we had cpanm set up at ' . $opt->{_cpanm} . ' but we did not';
+      die 'We thought we had cpanm set up at ' . $opt->{_cpanm} . ' but we did not';
     }
   }
 
