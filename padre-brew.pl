@@ -30,7 +30,6 @@ Getopt::Long::GetOptions(
   'name:s'
   , # What should we call the padre bundle directory put under basedir, defaults to the PadreApp
   'perlver:s',                 # Which perl version should we use, defaults to 5.14.1
-  'wxver:s',                   # which wx version should we use, defaults to .52
   'notest|no-test|bythesword', # Skip testing perl and cpan, live dangerous
   'module:s@',                 # Override the module list, defaults to Wx::Scintilla
   'base_module:s@',            # Core to padre such as Padre itself, and Alien-wxWidgets
@@ -40,6 +39,13 @@ Getopt::Long::GetOptions(
   'url_cpanm:s', # cpanm url if not default
   'keep_man',    # default to false
 );
+
+if ($opt->{h}) {
+    print <<'HELP';
+    Sorry, help yet, pop open the script to see all the geopts.
+HELP
+exit;
+}
 
 if ( !$opt->{modules_only} ) {
   set_paths($opt);
