@@ -142,4 +142,5 @@ Coming soonish!
 
 More Information
 ----------------
-Item-by-Item details of the Padre cava project file, and potential solutions to hard problems: (https://github.com/tomeliaz/padre-brew)[https://github.com/tomeliaz/padre-brew]
+*  Item-by-Item details of the Padre cava project file: [https://github.com/tomeliaz/padre-brew/blob/master/README.padrecavaproject.html](https://github.com/tomeliaz/padre-brew/blob/master/README.padrecavaproject.html)
+*  [More issues in packaging](https://github.com/tomeliaz/padre-brew/blob/master/ISSUES.txt)
