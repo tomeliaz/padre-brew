@@ -1,0 +1,164 @@
+<h1>Details of the Padre Cava Project</h1>
+
+<p>The goal of this document is to describe all the pieces of the cava project used to package Padre. Future builders can use these details to </p>
+
+<ul>
+<li>Update the cava project</li>
+<li>Solve complex packaging problems</li>
+<li>Use a different packager</li>
+<li>Consider changes to Padre to better support packaging</li>
+</ul>
+
+<p>It is assumed you have read the README and are familiar with packaging Padre with Cava. This guide will go through the Cava project item by item.</p>
+
+<h2>Credit</h2>
+
+<p>The first version of the cava package was created by Mark @ (Cava)[http://www.cava.co.uk/], and this guide describes his work or builds upon it.</p>
+
+<p>Lets get down to it...</p>
+
+<h1>Project Layout and Files</h1>
+
+<p>The Padre Cava project consists of a few scripts, modules rules &amp; patches, and some support files.</p>
+
+<h2>Scripts And Executables - ./cava/scripts</h2>
+
+<p>On OSX, Cava produces DMGs that expose only the Padre.app to the external and internal environment.</p>
+
+<p>This causes problems for Padre because it, at times, tries to make use of an executable perl by looking through the filesystem (as a sibling to the Padre executable). This is done in Padre::Perl.</p>
+
+<p>To correctly bundle the current code, a new script was written called pperl.pl. This is a simple wrapper that is invoked in Padre::Perl, and runs perl expressions as if they were running in an external perl.</p>
+
+<ul>
+<li><p><code>./cava/scripts/pperl.pl</code></p>
+
+<ul>
+<li>Invoked by Padre::Perl, it runs perl in the same process as the existing padre.</li>
+<li>Can be removed when no more such calls are made in Padre</li>
+</ul></li>
+<li><p><code>./cava/scripts/padre.pl</code></p>
+
+<ul>
+<li>Almost identical to the existing padre.pl in CPAN</li>
+<li>Removes the call to <code>wxPerl</code> in OSX, since this is harmful in OSX</li>
+</ul></li>
+</ul>
+
+<p>Adding these scripts to the Cava Scripts allows the Cava handler: Cava::Packager::GetScriptCommand to locate them. [I beieve they also work with <code>do</code> if added to INC - needs confirmation] See the Padre::Perl patch.</p>
+
+<h2>Module Rules - ./cava/rule/padre.cavarule</h2>
+
+<p>Rules are instructions for Cava on how to handle certain modules. They have options, code stubs, and patches.Once imported, they can be found under the project view/Cava Packager/Global Module Rules.</p>
+
+<p>We have three rules in the project:</p>
+
+<ul>
+<li><p><code>Padre</code></p>
+
+<ul>
+<li>This rule for the main Padre modules has a few components:</li>
+<li><p>Main Options</p>
+
+<ul>
+<li>Include Sub Modules : All Levels</li>
+<li>This setting tells Cava to include all Padre::* namespaced modules in the final package if they are in the INC of our perl. This is great because it means that normal Padre plugins are included by default.</li>
+<li><p>Cava automatically packages dependencies, so any modules that plugins depend on will also be included.</p></li>
+<li><p>Extra Includes and Files : Modules</p></li>
+<li><p>This list provides other modules that we want bundled with Padre. It includes things like Wx::Sintilla, which would not automatically be found by the dependency scanner or the namespace inclusion.</p></li>
+<li><p>Extra Includes and Files : Additional Files</p></li>
+<li>Padre uses perldiag (more on that later) to provide diagnostics. perldiag, in turn, uses its pod files.</li>
+<li>Cava by default strips pod from its packages</li>
+<li><p>Here we force Cava to include the pod needed by perldiag. Note that on windows, the files is pods/perldiag.pod. (Once again I want to give credit to Mark for doing all this hard work).</p></li>
+<li><p>Extra Includes and Files : Directory Slurp</p></li>
+<li>To catch all files such as migration data files, we tell Cava to include any files placed under the Padre module directory in our lib. (TBConfirmed this is where migration files are located)</li>
+</ul></li>
+<li><p>Code Stub</p>
+
+<ul>
+<li>These are automatically included by Cava at the start of the module.</li>
+<li>This one first sets up the environment in case we are running under activestate perl, which tries to invoke all scripts using the activestate perldebugger.</li>
+<li>It then includes a commented out line allowing developers to produce packages that use a non-standard PADRE_HOME, to not clobber their personal config files with the development configs.</li>
+<li>This could be made a run-time option by detecting if we are running under Cava using Cava::Packager::IfPackaged</li>
+<li>Setting Apply From Module Version - Default tells Cava to include this in all versions of the module</li>
+</ul></li>
+<li><p><code>Padre::DB::Migrate</code></p>
+
+<ul>
+<li>Note: This documentation section is currently unclear, and needs more understanding and work.</li>
+<li>We have a patch for the Padre::DB::Migrate. Migrate tries to access the migration data files, and normally this is not available to the packaged Padre. However, the patch unshifts the name into INC, making it available at runtime..</li>
+<li>Cava knows about the File-ShareDir and plays nice.</li>
+<li>Migration is set to apply to All versions of the module.</li>
+</ul></li>
+<li><p><code>Padre::Perl</code></p>
+
+<ul>
+<li>Our patch returns the pperl.pl script as a perl. The script masquerades as a perl, but runs commands in the same perl as the running Padre, as described in the Scripts section.</li>
+<li>Migration is set to apply to All versions of the module.</li>
+</ul></li>
+</ul></li>
+</ul>
+
+<h2>Module Images - ./cava/images/padre.icns</h2>
+
+<p>This file contains a bundle (details) of padre icons.</p>
+
+<h1>Cava Packager Usage Details</h1>
+
+<h2>External Patch</h2>
+
+<ul>
+<li>Setting an external patch program is required because we apply source patches to Padre in Cava, and external patch allows slightly fuzzy application of patches. We created <code>./bin/usr_bin_patch</code> as a symlink to the /usr/bin/patch, for easy access if it applies.</li>
+</ul>
+
+<h2>Padre Project</h2>
+
+<p>The main settings of the padre project can be found in the project tree Padre item.</p>
+
+<ul>
+<li><p>Tab Project Details</p>
+
+<ul>
+<li>The project type is OSX App Bundle on OSX</li>
+<li>Other fields are set reasonably, and the version must be carefully set before each production release</li>
+</ul></li>
+<li><p>Tab Build Options</p>
+
+<ul>
+<li>Package Method is set to Plain Text Perl Code, since we do not need any obfuscation</li>
+<li>Default Package Location is set to Standard INC to aid clarity</li>
+</ul></li>
+<li><p>Bundle Info</p>
+
+<ul>
+<li>Bundle Executable is set to Padre</li>
+<li>Bundle Name and Icon are set properly</li>
+</ul></li>
+<li><p>Perl Interpreter</p>
+
+<ul>
+<li>Essential - this is the perl we'll be including in our Padre package, and also the perl from which we find and pull modules (by default)</li>
+</ul></li>
+</ul>
+
+<h2>Padre/Executables</h2>
+
+<p>These are set to match the scripts, and in non-DMG packages these (need confirmation) will be the two executables that are installed with the package.</p>
+
+<ul>
+<li><p>padre</p>
+
+<ul>
+<li>mapped to padre.pl script</li>
+<li>type is GUI so that, when packaged, it interacts properly with OSX GUI</li>
+</ul></li>
+<li><p>pperl</p>
+
+<ul>
+<li>mapped to the pperl.pl script</li>
+<li>type console</li>
+</ul></li>
+</ul>
+
+<h2>Padre/Scripts</h2>
+
+<p>Here we include the padre.pl and pperl.pl scripts describe earlier.</p>

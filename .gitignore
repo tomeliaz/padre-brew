@@ -1,0 +1,8 @@
+cava/project/cava20-temp
+cava/project/cava20-logs
+
+PadreApp
+*.DS_Store
+cava/project/cava20
+cava/project/installer
+cava/project/release
