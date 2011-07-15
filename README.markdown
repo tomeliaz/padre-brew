@@ -142,5 +142,5 @@ Coming soonish!
 
 More Information
 ----------------
-*  Item-by-Item details of the Padre cava project file: [https://github.com/tomeliaz/padre-brew/blob/master/README.padrecavaproject.html](https://github.com/tomeliaz/padre-brew/blob/master/README.padrecavaproject.html)
-*  [More issues in packaging](https://github.com/tomeliaz/padre-brew/blob/master/ISSUES.txt)
+*  Item-by-Item details of the Padre cava project file: [https://github.com/tomeliaz/padre-brew/blob/master/README.padrecavaproject.markdown](https://github.com/tomeliaz/padre-brew/blob/master/README.padrecavaproject.markdown)
+*  [More issues in packaging](https://github.com/tomeliaz/padre-brew/blob/master/ISSUES.markdown)
