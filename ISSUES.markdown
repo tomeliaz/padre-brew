@@ -11,15 +11,18 @@ Bugs
 Building Padre / Platforms
 ==========================
 OSX:
+
 *  We do need to stick with 32bit perl on OSX if we want the stable Wx packages (2.8.xx(12))
 *  The development Wx (2.9) can use 64 bit uses carbon, but may be incomplete.
 
 Linux:
+
 *  Building on linux: Mark suggests we stick with building on CentOS because it will produce packages that work on the most distributions of linux, including RHEL5
 *  We probably need to do 32 and 64 bit versions for linux
 *  An option to streamline linux building is to package Wx in PAR Dist, and distribute that. Otherwise, padre-brew is going to be hard on linux because linux builds depend on the user having installed Wx and dependencies using their own package manager. If we have a stable build machine, we can manually set this up once.
 
 Windows:
+
 * Building on Windows may be easiest using Strawberry perl, and probably a 32 bit version is sufficient though a 64 could be built.
 
 Padre Calling External Perls
