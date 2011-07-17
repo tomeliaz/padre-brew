@@ -389,7 +389,7 @@ sub downloadfile {
   my $opt         = shift;
   my $url         = shift;
   my $tofile      = shift;
-  my @curlcommand = ( 'curl', '-L', $url, '-#', '-o', $tofile );
+  my @curlcommand = ( 'curl', '-L', $url, '-#', '-k', '-o', $tofile );
   verb( $opt, "Executing  @curlcommand" );
   system(@curlcommand) == 0 or die "system @curlcommand failed: $?";
 
