@@ -46,9 +46,13 @@ Getopt::Long::GetOptions(
   'add_module:s@',                 # Add module
   'use_all_plugins|use-all-plugins'
   ,           # Defaults to FALSE, we normally only include the core_plugins and add_plugins
+              # Note that many plugins require base packages, such as aspell-devel
+              # and use-all-plugins IS an interactive install - you will be asked questions.
   'v|verbose',
   'modules_only|modules-only'
   , # Set if you want to SKIP directly to installing modules (you already did the perl setup)
+   # This is very handy when you have a module fail to install (for example SpellCheck needs aspell-devel)
+                    # you can just 'resume' the PadreApp building by using --modules-only
   'url_cpanm:s',    # cpanm url if not default
   'keep_man',       # default to false
   'base_module:s@', # Core to padre such as Padre itself, and Alien-wxWidgets
