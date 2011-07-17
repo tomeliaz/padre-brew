@@ -9,19 +9,31 @@ use File::Copy   ();
 use FileHandle;
 
 our $VERSION = '0.01';
-my $opt = { basedir      => Cwd::getcwd,
-            name         => 'PadreApp',
-            perlver      => '5.14.1',
-            notest       => 0,
-            v            => 0,
-            modules_only => 0,
-            url_cpanm    => 'http://xrl.us/cpanm',
-            url_perlbrew => 'http://xrl.us/perlbrewinstall',
-            module       => [qw/Wx::Scintilla/],
-            base_module  => [qw/Padre Alien::wxWidgets/],
-            keep_man     => 0,
-            _rootdir     => undef,
-            _perldirname => 'perl5', };
+my $opt = {
+  basedir      => Cwd::getcwd,
+  name         => 'PadreApp',
+  perlver      => '5.14.1',
+  notest       => 0,
+  v            => 0,
+  modules_only => 0,
+  url_cpanm    => 'http://xrl.us/cpanm',
+  url_perlbrew => 'http://xrl.us/perlbrewinstall',
+  all_plugins  => [
+    qw/Wx::Scintilla Padre::Plugin::XS Padre::Plugin::Catalyst Padre::Plugin::Parrot Padre::Plugin::NYTProf Padre::Plugin::WxWidgets Padre::Plugin::PerlTidy Padre::Plugin::SpellCheck Padre::Plugin::PerlCritic Padre::Plugin::DataWalker Padre::Plugin::JavaScript Padre::Plugin::Autoformat Padre::Plugin::Mojolicious Padre::Plugin::Plack Padre::Plugin::DistZilla Padre::Plugin::XML Padre::Plugin::Git Padre::Plugin::SVN Padre::Plugin::Debugger/
+  ],
+  core_plugins    => [qw/Wx::Scintilla Padre::Plugin::PerlTidy Padre::Plugin::PerlCritic/],
+  add_module      => [],
+  base_module     => [qw/Padre Alien::wxWidgets/],
+  use_all_plugins => 0,
+  keep_man        => 0,
+  _rootdir        => undef,
+  _perldirname    => 'perl5',
+  _builds         => {
+    linux => '-Dcc=gcc -Dld=g++ -Dusethreads -Duseithreads -Duseshrplib',
+    osx =>
+      '-Dcc=gcc -Dld=g++ -Dusethreads -Duseithreads -Duseshrplib -Accflags="-arch i386 -DUSE_SITECUSTOMIZE -Duselargefiles -fno-merge-constants" -Aldflags="-Wl,-search_paths_first -arch i386" -Alddlflags="-Wl,-search_paths_first -arch i386"',
+  },
+  _platform => 'linux', };
 
 Getopt::Long::GetOptions(
   $opt,
@@ -29,22 +41,28 @@ Getopt::Long::GetOptions(
   'basedir:s', # Where should we place the bundle directory, default is CWD
   'name:s'
   , # What should we call the padre bundle directory put under basedir, defaults to the PadreApp
-  'perlver:s',                 # Which perl version should we use, defaults to 5.14.1
-  'notest|no-test|bythesword', # Skip testing perl and cpan, live dangerous
-  'module:s@',                 # Override the module list, defaults to Wx::Scintilla
+  'perlver:s',                     # Which perl version should we use, defaults to 5.14.1
+  'notest|no-test|bythesword',     # Skip testing perl and cpan, live dangerous
+  'add_module:s@',                 # Add module
+  'use_all_plugins|use-all-plugins'
+  ,           # Defaults to FALSE, we normally only include the core_plugins and add_plugins
   'v|verbose',
   'modules_only|modules-only'
   , # Set if you want to SKIP directly to installing modules (you already did the perl setup)
-  'url_cpanm:s', # cpanm url if not default
-  'keep_man',    # default to false
-  'base_module:s@',            # Core to padre such as Padre itself, and Alien-wxWidgets
+  'url_cpanm:s',    # cpanm url if not default
+  'keep_man',       # default to false
+  'base_module:s@', # Core to padre such as Padre itself, and Alien-wxWidgets
 );
 
-if ($opt->{h}) {
-    print <<'HELP';
+if ( $opt->{h} ) {
+  print <<'HELP';
     Sorry, help yet, pop open the script to see all the geopts.
 HELP
-exit;
+  exit;
+}
+
+if ( $^O eq 'darwin' ) {
+  $opt->{_platform} = 'osx';
 }
 
 if ( !$opt->{modules_only} ) {
@@ -61,7 +79,9 @@ if ( !$opt->{modules_only} ) {
 
 pre_modules_prep($opt);
 setup_modules( $opt, $opt->{base_module} );
-setup_modules( $opt, $opt->{module} );
+setup_modules( $opt, $opt->{core_plugins} );
+setup_modules( $opt, $opt->{all_plugins} ) if $opt->{use_all_plugins};
+setup_modules( $opt, $opt->{add_module} );
 copy_padre_to_bin($opt);
 clean_perl($opt);
 
@@ -91,9 +111,8 @@ sub set_paths {
     File::Spec->catfile( $opt->{_perldir}, 'dists', 'perl-' . $opt->{perlver} . 'tar.gz' );
   $opt->{_padre_perlbin} =
     File::Spec->catfile( $opt->{_perldir}, 'perls', 'perl-' . $opt->{perlver}, 'bin', 'padre' );
-  $opt->{_padre_root} =
-    File::Spec->catfile( $opt->{_rootdir}, 'padre' );
-  
+  $opt->{_padre_root} = File::Spec->catfile( $opt->{_rootdir}, 'padre' );
+
 } # end set_paths
 
 sub create_base_dir {
@@ -160,7 +179,7 @@ sub setup_perlbrew {
 sub build_perl {
   my $opt = shift;
 
-  verb( $opt, 'Building 32bit Perl' );
+  verb( $opt, 'Building Perl' );
 
   my $notest = $opt->{notest} ? '--notest' : '';
   my $buildstr =
@@ -168,7 +187,7 @@ sub build_perl {
     . " install "
     . $opt->{perlver}
     . " $notest "
-    . '-Dcc=gcc -Dld=g++ -Dusethreads -Duseithreads -Duseshrplib -Accflags="-arch i386 -DUSE_SITECUSTOMIZE -Duselargefiles -fno-merge-constants" -Aldflags="-Wl,-search_paths_first -arch i386" -Alddlflags="-Wl,-search_paths_first -arch i386"';
+    . $opt->{_builds}->{ $opt->{_platform} };
 
   $ENV{PERLBREW_HOME} = $opt->{_perldir};
   $ENV{PERLBREW_ROOT} = $opt->{_perldir};
@@ -215,13 +234,13 @@ sub check_perlbrew {
 sub clean_perl {
   my $opt = shift;
 
-  if (-f $opt->{_perldisttgz}) {
-      verb( $opt, "Removing dist gz " . $opt->{_perldisttgz} );
-      unlink $opt->{_perldisttgz} or warn "Could not remove perl dist at " . $opt->{_perldisttgz};
+  if ( -f $opt->{_perldisttgz} ) {
+    verb( $opt, "Removing dist gz " . $opt->{_perldisttgz} );
+    unlink $opt->{_perldisttgz} or warn "Could not remove perl dist at " . $opt->{_perldisttgz};
   }
 
   my $err_list = [];
-  if ( !$opt->{keep_man}  && -d $opt->{_perlmans}) {
+  if ( !$opt->{keep_man} && -d $opt->{_perlmans} ) {
     verb( $opt, "Removing perl man dir " . $opt->{_perlmans} );
     File::Path::remove_tree( $opt->{_perlmans},
                              { verbose => 0,
@@ -233,7 +252,7 @@ sub clean_perl {
   }
 
   $err_list = [];
-  if (-d $opt->{_perltmpbuild}) {
+  if ( -d $opt->{_perltmpbuild} ) {
     verb( $opt, "Removing perl tmp build dir " . $opt->{_perltmpbuild} );
     File::Path::remove_tree( $opt->{_perltmpbuild},
                              { verbose => 0,
@@ -345,7 +364,7 @@ CPANM
 } # end create_sandboxed_cpanm
 
 sub copy_padre_to_bin {
-  my $opt = shift;
+  my $opt        = shift;
   my $padre_root = $opt->{_padre_root};
   if ( !-f $padre_root ) {
     verb( $opt, "Copying padre to our root" );
@@ -356,10 +375,10 @@ sub copy_padre_to_bin {
 }
 
 sub print_helpful_message {
-    my $opt = shift;
-    my $padre = $opt->{_padre_root};
-    my $cpanm = $opt->{_sandboxedcpanm};
-    print <<"MESS";
+  my $opt   = shift;
+  my $padre = $opt->{_padre_root};
+  my $cpanm = $opt->{_sandboxedcpanm};
+  print <<"MESS";
 
 Install future modules: $cpanm
 Run Padre: $padre
