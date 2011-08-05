@@ -18,14 +18,14 @@ my $opt = {
     notest       => 0,
     v            => 0,
     modules_only => 0,
-    url_cpanm    => 'http://xrl.us/cpanm',
-    url_perlbrew => 'http://xrl.us/perlbrewinstall',
+    url_cpanm    => 'http://cpanmin.us', #http://xrl.us/cpanm',
+    url_perlbrew => 'https://raw.github.com/gugod/App-perlbrew/master/perlbrew-install', #http://xrl.us/perlbrewinstall',
     all_plugins  => [
         qw/Wx::Scintilla Padre::Plugin::XS Padre::Plugin::Catalyst Padre::Plugin::Parrot Padre::Plugin::NYTProf Padre::Plugin::WxWidgets Padre::Plugin::PerlTidy Padre::Plugin::SpellCheck Padre::Plugin::PerlCritic Padre::Plugin::DataWalker Padre::Plugin::JavaScript Padre::Plugin::Autoformat Padre::Plugin::Mojolicious Padre::Plugin::Plack Padre::Plugin::DistZilla Padre::Plugin::XML Padre::Plugin::Git Padre::Plugin::SVN Padre::Plugin::Debugger/
         ],
         core_plugins    => [qw/Wx::Scintilla Padre::Plugin::PerlTidy Padre::Plugin::PerlCritic/],
         add_module      => [],
-        base_module     => [qw/Padre Alien::wxWidgets/],
+        base_module     => [qw/Padre Alien::wxWidgets Wx/],
         use_all_plugins => 0,
         keep_man        => 0,
         _rootdir        => undef,
@@ -60,6 +60,7 @@ Getopt::Long::GetOptions(
     'url_cpanm:s',    # cpanm url if not default
     'keep_man',       # default to false
     'base_module:s@', # Core to padre such as Padre itself, and Alien-wxWidgets
+    'svn_mode|svn-mode',       # Just build perl and wx, omit all padre related things since we'll use the ones in svn
     );
 
 if ( $opt->{h} ) {
@@ -67,6 +68,11 @@ if ( $opt->{h} ) {
     Sorry, help yet, pop open the script to see all the geopts.
 HELP
         exit;
+}
+
+if ($opt->{svn_mode}) {
+    $opt->{base_module} = [qw/Alien::wxWidgets Wx/];
+    $opt->{core_plugins} = [];
 }
 
 my ($sysname, $nodename, $release, $version, $machine) = POSIX::uname();
@@ -103,10 +109,10 @@ setup_modules( $opt, $opt->{base_module} );
 setup_modules( $opt, $opt->{core_plugins} );
 setup_modules( $opt, $opt->{all_plugins} ) if $opt->{use_all_plugins};
 setup_modules( $opt, $opt->{add_module} );
-copy_padre_to_bin($opt);
+copy_padre_to_bin($opt) unless $opt->{svn_mode};
 clean_perl($opt);
 
-print_helpful_message($opt);
+print_helpful_message($opt) unless $opt->{svn_mode};
 exit;
 
 # Set all the paths we're going to use in $opt
