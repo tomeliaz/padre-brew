@@ -203,25 +203,39 @@ sub setup_perlbrew {
     check_perlbrew($opt);
 } # setup_perlbrew
 
+sub patch_perl {
+    my $opt = shift;
+    verb ($opt, 'Downloading Updated PatchPerl');
+    system(qq{curl -k -L https://raw.github.com/gist/962406/93cd90f5e6c6a86073afb3815f0ea06c3c9e99ed/patchperl -o $ENV{PERLBREW_ROOT}/bin/patchperl});
+    system(qq{chmod +x $ENV{PERLBREW_ROOT}/bin/patchperl});
+}
+
 sub build_perl {
     my $opt = shift;
 
     verb( $opt, 'Building Perl' );
 
+    $ENV{PERLBREW_HOME} = $opt->{_perldir};
+    $ENV{PERLBREW_ROOT} = $opt->{_perldir};
+
     my $notest = $opt->{notest} ? '--notest' : '';
-    my $buildstr =
+    my $buildstr = "source $ENV{PERLBREW_ROOT}/etc/bashrc && " .
         $opt->{_perlbrew}
     . " install "
         . $opt->{perlver}
     . " $notest "
         . $opt->{_builds}->{ $opt->{_platform} };
 
-    $ENV{PERLBREW_HOME} = $opt->{_perldir};
-    $ENV{PERLBREW_ROOT} = $opt->{_perldir};
-
     verb( $opt, "Executing $buildstr" );
-    system($buildstr) == 0 or die "system $buildstr failed: $?";
+    
+    ### LION HACK
+    if($opt->{_platform} eq 'osxlion') {
+        # Patch so next system works
+        patch_perl($opt);
+    }
 
+    system($buildstr) == 0 or die "system $buildstr failed: $?";
+    
     check_perl($opt);
 
 } # end build_perl
