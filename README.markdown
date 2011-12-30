@@ -71,7 +71,7 @@ A number of Cava options cannot currently be automated, and must be manually set
    *  Set External Patch to a reasonable patch. You can use `./bin/usr_bin_patch` which is symlinked to `/usr/bin/patch` for your convenience
 
 *  Set the scripts directory
-   *  In the pacakge view select Padre/Scripts
+   *  In the package view select Padre/Scripts
    *  Click the edit (Pencil) at the top right and choose `./cava/scripts`
    *  On success, you will be prompted that both padre.pl and pperl.pl have been located
 
@@ -85,7 +85,7 @@ A number of Cava options cannot currently be automated, and must be manually set
    *  Change the executable from `/usr/bin/perl` to another `perl` if needed
    *  If you used `padre-brew.pl`, you can select `./PadreApp/perl5/perls/perl5.14.1/bin/perl`
    *  Approve the re-scan request
-   *  Note: If you get a warning informing you taht Cava::Packager utils need updating, click the Update button in the perl information window that appears behind the warning. This will install the utils into the selected perl.
+   *  Note: If you get a warning informing you that Cava::Packager utils need updating, click the Update button in the perl information window that appears behind the warning. This will install the utils into the selected perl.
 
 *  Set the icons for the package
    *  In the package view select Padre -tab-> Bundle Info
@@ -94,7 +94,7 @@ A number of Cava options cannot currently be automated, and must be manually set
    *  Highlight the padre.icns entry and click Select
 
 *  Set the version number
-   *  In the pacakge view select Padre -tab->Project Details and change the major/minor version.
+   *  In the package view select Padre -tab->Project Details and change the major/minor version.
 
 Optional Changes - Add Modules
 ------------------------------
@@ -105,7 +105,7 @@ At times you may want to include more modules into your Padre package.
    `./PadreApp/bin/cpanm <module>`
 
 *  Cava includes by default:
-   *  If your module is under the `Padre::` namespace it will be included into any pacakge by default. No more changes are needed.
+   *  If your module is under the `Padre::` namespace it will be included into any package by default. No more changes are needed.
    *  If your module is clearly depended on (use, require) by a module that will be packaged by Cava, it will also be included. So if your Plugin uses modules, they will be included.
  
 *  For modules not automatically detected, you must add them to the Padre module rules
