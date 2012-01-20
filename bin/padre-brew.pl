@@ -203,13 +203,6 @@ sub setup_perlbrew {
     check_perlbrew($opt);
 } # setup_perlbrew
 
-sub patch_perl {
-    my $opt = shift;
-    verb ($opt, 'Downloading Updated PatchPerl');
-    system(qq{curl -k -L https://raw.github.com/gist/962406/93cd90f5e6c6a86073afb3815f0ea06c3c9e99ed/patchperl -o $ENV{PERLBREW_ROOT}/bin/patchperl});
-    system(qq{chmod +x $ENV{PERLBREW_ROOT}/bin/patchperl});
-}
-
 sub build_perl {
     my $opt = shift;
 
@@ -229,10 +222,10 @@ sub build_perl {
     verb( $opt, "Executing $buildstr" );
     
     ### LION HACK
-    if($opt->{_platform} eq 'osxlion') {
+## NO LONGER NEEDED?    if($opt->{_platform} eq 'osxlion') {
         # Patch so next system works
-        patch_perl($opt);
-    }
+##        patch_perl($opt);
+##    }
 
     system($buildstr) == 0 or die "system $buildstr failed: $?";
     
